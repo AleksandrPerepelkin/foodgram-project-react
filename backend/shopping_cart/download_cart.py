@@ -12,14 +12,14 @@ def download_ingredients(user):
         recipe__recipe_cart__user=user).values(
         'ingredient__name',
         'ingredient__measurement_unit').annotate(
-        amount='amount')
+        result='result')
 
     for ingredient_recipe in ingredient_recipes:
         name = ingredient_recipe['ingredient__name']
         measurement_unit = ingredient_recipe['ingredient__measurement_unit']
         ingredient = f'{name}, {measurement_unit}'
-        amount = ingredient_recipe['amount']
-        ingredients[ingredient] += amount
+        result = ingredient_recipe['amount']
+        ingredients[ingredient] += result
     ingredients_to_file = 'Список покупок:\n'
     count = 1
 

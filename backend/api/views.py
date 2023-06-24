@@ -70,13 +70,14 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_class = IngredientFilter
 
 
+#  Забыл исправить название проверки)))
 class ShoppingCartAPIView(APIView):
     """Вью сет для списка покупок"""
 
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, pk):
-        """Метод для добавления в избранное"""
+        """Проверка на существующий рецепт в корзине у пользователя"""
         cart = get_object_or_404(Recipe, pk=pk)
         recipe_id = request.data.get('recipe')
         try:
