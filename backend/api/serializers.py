@@ -23,9 +23,9 @@ class UserReadSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, obj):
         """Метод определения подписки на автора"""
         request = self.context.get('request')
-        return (not request.user.is_anonymous and request.user !=
-                obj and Subscription.objects.filter(user=request.user,
-                                                    author=obj).exists())
+        return (not request.user.is_anonymous and request.user
+                != obj and Subscription.objects.filter(user=request.user,
+                                                       author=obj).exists())
 
 
 class TagSerializer(serializers.ModelSerializer):
