@@ -77,7 +77,9 @@ class ShoppingCartAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, pk):
-        """Проверка на существующий рецепт в корзине у пользователя"""
+        """
+        Проверка на добавление существующего рецепт в корзине у пользователя
+        """
         cart = get_object_or_404(Recipe, pk=pk)
         recipe_id = request.data.get('recipe')
         try:
