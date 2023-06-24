@@ -40,7 +40,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
     @action(detail=False, methods=('get',),
-            url_name='download_shopping_cart', permission_classes=(IsAuthenticated,))
+            url_name='download_shopping_cart',
+            permission_classes=(IsAuthenticated,))
     def download_shopping_cart(self, request, *args, **kwargs):
         """Метод для скачивания списка покупок"""
         ingredients = download_ingredients(request.user)
@@ -74,17 +75,21 @@ class ShoppingCartAPIView(APIView):
 
     permission_classes = (IsAuthenticated,)
 
-    def post(self, request, recipe_id):
+    def post(self, request, pk):
         """Метод для добавления в избранное"""
-        recipe = get_object_or_404(Recipe, id=recipe_id)
-        if ShoppingCart.objects.filter(
-                user=request.user, recipe=recipe).exists():
-            return Response(
-                {'error': 'Вы уже добавили этот рецепт в корзину'},
-                status=status.HTTP_400_BAD_REQUEST)
-        recipe_in_cart = ShoppingCart.objects.create(
-            user=request.user, recipe=recipe)
-        serializer = RecipeSmallSerializer(recipe_in_cart.recipe)
+        cart = get_object_or_404(Recipe, pk=pk)
+        recipe_id = request.data.get('recipe')
+        try:
+            recipe = Recipe.objects.get(pk=recipe_id)
+        except Recipe.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        quantity = request.data.get('quantity')
+        recipe_in_cart = ShoppingCart(cart=cart,
+                                      recipe=recipe,
+                                      quantity=quantity,
+                                      user=request.user)
+        recipe_in_cart.save()
+        serializer = RecipeSmallSerializer(recipe_in_cart)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, recipe_id):
