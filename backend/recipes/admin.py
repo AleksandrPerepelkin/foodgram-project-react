@@ -41,7 +41,7 @@ class RecipeAdmin(admin.ModelAdmin):
     def in_cart_count(self, obj):
         return obj.recipe_cart.count()
 
-    in_favorite_count.short_description = 'Пользователей, добавили в избранное:'
+    in_favorite_count.short_description = 'Пользователей,добавили в избранное:'
     in_cart_count.short_description = 'Пользователей, добавили в корзину:'
 
 
