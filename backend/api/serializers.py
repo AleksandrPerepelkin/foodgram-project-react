@@ -148,16 +148,16 @@ class RecipeSerializer(serializers.ModelSerializer):
     def get_is_favorited(self, obj):
         """Метод определения рецепта в избранном"""
         request = self.context.get('request')
-        return (not request.user.is_anonymous and
-                Favorite.objects.filter(user=request.user,
-                                        recipe=obj).exists())
+        return (not request.user.is_anonymous
+                and Favorite.objects.filter(user=request.user,
+                                            recipe=obj).exists())
 
     def get_is_in_shopping_cart(self, obj):
         """Метод определения рецепта в избранном"""
         request = self.context.get('request')
-        return (not request.user.is_anonymous and
-                ShoppingCart.objects.filter(user=request.user,
-                                            recipe=obj).exists())
+        return (not request.user.is_anonymous
+                and ShoppingCart.objects.filter(user=request.user,
+                                                recipe=obj).exists())
 
 
 class RecipeSmallSerializer(serializers.ModelSerializer):
@@ -191,9 +191,10 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, obj):
         """Метод определения подписки на автора"""
         request = self.context.get('request')
-        return (not request.user == obj.author and
-                Subscription.objects.filter(user=request.user,
-                                            author=obj.author).exists())
+        return (not request.user
+                == obj.author
+                and Subscription.objects.filter(user=request.user,
+                                                author=obj.author).exists())
 
     def get_recipes(self, obj):
         """Метод получения рецептов автора"""
