@@ -12,7 +12,7 @@ def download_ingredients(user):
         recipe__recipe_cart__user=user).values(
         'ingredient__name',
         'ingredient__measurement_unit').annotate(
-        amount=Sum('amount'))
+        amount='amount')
 
     for ingredient_recipe in ingredient_recipes:
         name = ingredient_recipe['ingredient__name']
