@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
@@ -123,7 +124,7 @@ class FavoriteAPIView(APIView):
 
     def post(self, request, pk):
         """
-        Метод добавления существующего рецепта
+        Метод добавления существующего рецепта,
         в список избранного пользователя.
         """
         recipe = get_object_or_404(Recipe, pk=pk)
@@ -164,7 +165,6 @@ class SubscribeAPIView(APIView):
                 user=request.user, author=user_id).exists():
             return Response(
                 {'error': 'Вы пытаетесь подписаться на самого '
-
                  'себя или уже подписаны на этого автора'},
                 status=status.HTTP_400_BAD_REQUEST)
         subscription = Subscription.objects.create(
