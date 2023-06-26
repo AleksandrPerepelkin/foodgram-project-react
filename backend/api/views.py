@@ -17,11 +17,12 @@ from .filters import IngredientFilter, RecipeFilter
 from .permissions import OwnerOrReadPermission
 from .serializers import (IngredientSerializer, RecipeAddSerializer,
                           RecipeSerializer, RecipeSmallSerializer,
-                          SubscriptionsSerializer, TagSerializer,)
+                          SubscriptionsSerializer, TagSerializer,
+                          FavoriteSerializer)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    """Вью сет для рецептов"""
+    """Вью сет для рецептов."""
 
     queryset = Recipe.objects.all()
     permission_classes = (OwnerOrReadPermission,)
@@ -30,20 +31,20 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):
-        """Определение сериалайзера для пользователей"""
+        """Определение сериалайзера для пользователей."""
         if self.action in ('create', 'partial_update'):
             return RecipeAddSerializer
         return RecipeSerializer
 
     def perform_create(self, serializer):
-        """Переопределение метода создания поста"""
+        """Переопределение метода создания поста."""
         serializer.save(author=self.request.user)
 
     @action(detail=False, methods=('get',),
             url_name='download_shopping_cart',
             permission_classes=(IsAuthenticated,))
     def download_shopping_cart(self, request, *args, **kwargs):
-        """Метод для скачивания списка покупок"""
+        """Метод для скачивания списка покупок."""
         ingredients = download_ingredients(request.user)
         return HttpResponse(
             ingredients,
@@ -53,7 +54,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
-    """Вью сет для тегов"""
+    """Вью сет для тегов."""
 
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
@@ -61,7 +62,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
-    """Вью сет для ингредиентов"""
+    """Вью сет для ингредиентов."""
 
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
@@ -71,86 +72,98 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class ShoppingCartAPIView(APIView):
-    """Вью сет для списка покупок"""
+    """Вью набор для составления списка покупок."""
 
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, pk):
         """
-        Метод Проверки на добавление существующего
-        рецепта в корзине у пользователя
+        Метод добавления существующего рецепта в список покупок пользователя.
         """
         cart = get_object_or_404(Recipe, pk=pk)
         recipe_id = request.data.get('recipe')
-        try:
-            recipe = Recipe.objects.get(pk=recipe_id)
-        except Recipe.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+        recipe = self.get_recipe(recipe_id)
         quantity = request.data.get('quantity')
-        recipe_in_cart = ShoppingCart(cart=cart,
-                                      recipe=recipe,
-                                      quantity=quantity,
-                                      user=request.user)
-        recipe_in_cart.save()
+        recipe_in_cart = self.add_to_cart(cart, recipe, quantity, request.user)
         serializer = RecipeSmallSerializer(recipe_in_cart)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, recipe_id):
-        """Метод удаления рецепта из списка покупок"""
+        """Метод удаления рецепта из списка покупок."""
         recipe_in_cart = ShoppingCart.objects.filter(
             user=request.user, recipe=recipe_id)
         if recipe_in_cart.exists():
             recipe_in_cart.delete()
-            return Response({'message': 'Рецепт успешно удален из корзины'},
+            return Response({'message':
+                             'Recipe successfully removed from shopping list'},
                             status=status.HTTP_204_NO_CONTENT)
-        return Response({'message': 'Рецепта не было в корзине'},
+        return Response({'message': 'Recipe was not in the shopping list'},
                         status=status.HTTP_400_BAD_REQUEST)
+
+    def get_recipe(self, recipe_id):
+        try:
+            recipe = Recipe.objects.get(pk=recipe_id)
+        except Recipe.DoesNotExist:
+            raise Http404
+        return recipe
+
+    def add_to_cart(self, cart, recipe, quantity, user):
+        recipe_in_cart = ShoppingCart(cart=cart,
+                                      recipe=recipe,
+                                      quantity=quantity,
+                                      user=user)
+        recipe_in_cart.save()
+        return recipe_in_cart
 
 
 class FavoriteAPIView(APIView):
-    """Вью сет для избранного"""
+    """Вью набора любимых рецептов."""
 
     permission_classes = (IsAuthenticated,)
 
-    def post(self, request, recipe_id):
-        """Метод для добавления в избранное"""
-        recipe = get_object_or_404(Recipe, id=recipe_id)
-        if Favorite.objects.filter(
-                user=request.user, recipe=recipe).exists():
+    def post(self, request, pk):
+        """
+        Метод добавления существующего рецепта
+        в список избранного пользователя.
+        """
+        recipe = get_object_or_404(Recipe, pk=pk)
+        favorite_recipe = Favorite.objects.filter(
+            user=request.user, recipe=recipe)
+        if favorite_recipe.exists():
             return Response(
-                {'error': 'Вы уже добавили этот рецепт в избранное'},
+                {'error': 'Recipe is already in favorites'},
                 status=status.HTTP_400_BAD_REQUEST)
         favorite_recipe = Favorite.objects.create(
             user=request.user, recipe=recipe)
-        serializer = RecipeSmallSerializer(favorite_recipe.recipe)
-
+        serializer = FavoriteSerializer(favorite_recipe)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def delete(self, request, recipe_id):
-        recipe = get_object_or_404(Recipe, id=recipe_id)
+    def delete(self, request, pk):
+        """Метод удаления рецепта из списка избранных."""
+        recipe = get_object_or_404(Recipe, pk=pk)
         favorite_recipe = Favorite.objects.filter(
             user=request.user, recipe=recipe)
         if favorite_recipe.exists():
             favorite_recipe.delete()
-            return Response({'message': 'Рецепт успешно удален из избранного'},
+            return Response({'message':
+                             'Recipe successfully removed from favorites'},
                             status=status.HTTP_204_NO_CONTENT)
-        return Response({'message': 'Рецепта не было в избранном'},
+        return Response({'message': 'Recipe was not in favorites'},
                         status=status.HTTP_400_BAD_REQUEST)
 
 
 class SubscribeAPIView(APIView):
-    """Вью сет для подписок"""
+    """Вью просмотров для подписок."""
 
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, user_id):
-        """Метод для создания экземпляра подписки"""
+        """Метод создания экземпляра подписки."""
         author = get_object_or_404(User, id=user_id)
         if self.request.user == author or Subscription.objects.filter(
                 user=request.user, author=user_id).exists():
             return Response(
-                {'error': 'Вы пытаетесь подписаться на самого '
-                 'себя или уже подписаны на этого автора'},
+                {'error': 'You are trying to subscribe to yourself or already subscribed to this author'},
                 status=status.HTTP_400_BAD_REQUEST)
         subscription = Subscription.objects.create(
             author=author, user=self.request.user)
@@ -164,14 +177,14 @@ class SubscribeAPIView(APIView):
             user=request.user, author=user_id)
         if subscription.exists():
             subscription.delete()
-            return Response({'message': 'Подписка успешно удалена'},
+            return Response({'message': 'Subscription successfully removed'},
                             status=status.HTTP_204_NO_CONTENT)
-        return Response({'message': 'У вас не было такой подписки'},
+        return Response({'message': 'You did not have such subscription'},
                         status=status.HTTP_400_BAD_REQUEST)
 
 
 class SubscriptionsListAPIView(ListAPIView):
-    """Вью класс для просмотра списка подписок"""
+    """Вью класс для просмотра списка подписок."""
 
     serializer_class = SubscriptionsSerializer
     permission_classes = (IsAuthenticated,)
