@@ -131,7 +131,7 @@ class FavoriteAPIView(APIView):
             user=request.user, recipe=recipe)
         if favorite_recipe.exists():
             return Response(
-                {'error': 'Recipe is already in favorites'},
+                {'error': 'Рецепт уже есть в избранном'},
                 status=status.HTTP_400_BAD_REQUEST)
         favorite_recipe = Favorite.objects.create(
             user=request.user, recipe=recipe)
@@ -146,9 +146,9 @@ class FavoriteAPIView(APIView):
         if favorite_recipe.exists():
             favorite_recipe.delete()
             return Response({'message':
-                             'Recipe successfully removed from favorites'},
+                             'Вы уже добавили этот рецепт в избранное'},
                             status=status.HTTP_204_NO_CONTENT)
-        return Response({'message': 'Recipe was not in favorites'},
+        return Response({'message': 'Рецепта не было в избранном'},
                         status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -163,7 +163,9 @@ class SubscribeAPIView(APIView):
         if self.request.user == author or Subscription.objects.filter(
                 user=request.user, author=user_id).exists():
             return Response(
-                {'error': 'You are trying to subscribe to yourself or already subscribed to this author'},
+                {'error': 'Вы пытаетесь подписаться на самого '
+
+                 'себя или уже подписаны на этого автора'},
                 status=status.HTTP_400_BAD_REQUEST)
         subscription = Subscription.objects.create(
             author=author, user=self.request.user)
@@ -177,9 +179,9 @@ class SubscribeAPIView(APIView):
             user=request.user, author=user_id)
         if subscription.exists():
             subscription.delete()
-            return Response({'message': 'Subscription successfully removed'},
+            return Response({'message': 'Подписка успешно удалена'},
                             status=status.HTTP_204_NO_CONTENT)
-        return Response({'message': 'You did not have such subscription'},
+        return Response({'message': 'У вас не было такой подписки'},
                         status=status.HTTP_400_BAD_REQUEST)
 
 
