@@ -5,7 +5,7 @@ from recipes.models import IngredientRecipe
 
 def download_ingredients(user):
 
-    """Метод для формирования списка покупок"""
+    """Метод для формирования списка покупок."""
 
     ingredients = defaultdict(int)
     ingredient_recipes = IngredientRecipe.objects.filter(
@@ -18,8 +18,8 @@ def download_ingredients(user):
         name = ingredient_recipe['ingredient__name']
         measurement_unit = ingredient_recipe['ingredient__measurement_unit']
         ingredient = f'{name}, {measurement_unit}'
-        amount = ingredient_recipe['result']
-        ingredients[ingredient] += amount
+        result = ingredient_recipe['result']
+        ingredients[ingredient] += result
     ingredients_to_file = 'Список покупок:\n'
     count = 1
 

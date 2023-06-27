@@ -20,7 +20,7 @@ from .serializers import (IngredientSerializer, RecipeAddSerializer,
                           RecipeSerializer, RecipeSmallSerializer,
                           SubscriptionsSerializer, TagSerializer,
                           FavoriteSerializer)
-
+from api.utils import RepeatableMixin
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вью сет для рецептов."""
@@ -72,94 +72,62 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_class = IngredientFilter
 
 
-class ShoppingCartAPIView(APIView):
-    """Вью набор для составления списка покупок."""
+class ShoppingCartAPIView(RepeatableMixin, APIView):
+    """Вью сет для списка покупок"""
 
     permission_classes = (IsAuthenticated,)
 
-    def post(self, request, pk):
-        """
-        Метод добавления существующего рецепта в список покупок пользователя.
-        """
-        cart = get_object_or_404(Recipe, pk=pk)
-        recipe_id = request.data.get('recipe')
-        recipe = self.get_recipe(recipe_id)
-        quantity = request.data.get('quantity')
-        recipe_in_cart = self.add_to_cart(cart, recipe, quantity, request.user)
-        serializer = RecipeSmallSerializer(recipe_in_cart)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    def post(self, request, recipe_id):
+        """Метод для добавления в избранное"""
+        recipe = get_object_or_404(Recipe, id=recipe_id)
+        if self.check_if_already_added(ShoppingCart, request.user, recipe):
+            return Response(
+                {'error': 'Вы уже добавили этот рецепт в корзину'},
+                status=status.HTTP_400_BAD_REQUEST)
+        serializer_data = self.create_and_serialize(
+            RecipeSmallSerializer, ShoppingCart, request.user, recipe)
+        return Response(serializer_data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, recipe_id):
-        """Метод удаления рецепта из списка покупок."""
-        recipe_in_cart = ShoppingCart.objects.filter(
-            user=request.user, recipe=recipe_id)
-        if recipe_in_cart.exists():
-            recipe_in_cart.delete()
-            return Response({'message':
-                             'Recipe successfully removed from shopping list'},
+        """Метод удаления рецепта из списка покупок"""
+        if self.delete_instance(ShoppingCart, request.user, recipe_id):
+            return Response({'message': 'Рецепт успешно удален из корзины'},
                             status=status.HTTP_204_NO_CONTENT)
-        return Response({'message': 'Recipe was not in the shopping list'},
+        return Response({'message': 'Рецепта не было в корзине'},
                         status=status.HTTP_400_BAD_REQUEST)
 
-    def get_recipe(self, recipe_id):
-        try:
-            recipe = Recipe.objects.get(pk=recipe_id)
-        except Recipe.DoesNotExist:
-            raise Http404
-        return recipe
 
-    def add_to_cart(self, cart, recipe, quantity, user):
-        recipe_in_cart = ShoppingCart(cart=cart,
-                                      recipe=recipe,
-                                      quantity=quantity,
-                                      user=user)
-        recipe_in_cart.save()
-        return recipe_in_cart
-
-
-class FavoriteAPIView(APIView):
-    """Вью набора любимых рецептов."""
+class FavoriteAPIView(RepeatableMixin, APIView):
+    """Вью сет для избранного"""
 
     permission_classes = (IsAuthenticated,)
 
-    def post(self, request, pk):
-        """
-        Метод добавления существующего рецепта,
-        в список избранного пользователя.
-        """
-        recipe = get_object_or_404(Recipe, pk=pk)
-        favorite_recipe = Favorite.objects.filter(
-            user=request.user, recipe=recipe)
-        if favorite_recipe.exists():
+    def post(self, request, recipe_id):
+        """Метод для добавления в избранное"""
+        recipe = get_object_or_404(Recipe, id=recipe_id)
+        if self.check_if_already_added(Favorite, request.user, recipe):
             return Response(
-                {'error': 'Рецепт уже есть в избранном'},
+                {'error': 'Вы уже добавили этот рецепт в избранное'},
                 status=status.HTTP_400_BAD_REQUEST)
-        favorite_recipe = Favorite.objects.create(
-            user=request.user, recipe=recipe)
-        serializer = FavoriteSerializer(favorite_recipe)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        serializer_data = self.create_and_serialize(
+            RecipeSmallSerializer, Favorite, request.user, recipe)
+        return Response(serializer_data, status=status.HTTP_201_CREATED)
 
-    def delete(self, request, pk):
-        """Метод удаления рецепта из списка избранных."""
-        recipe = get_object_or_404(Recipe, pk=pk)
-        favorite_recipe = Favorite.objects.filter(
-            user=request.user, recipe=recipe)
-        if favorite_recipe.exists():
-            favorite_recipe.delete()
-            return Response({'message':
-                             'Вы уже добавили этот рецепт в избранное'},
+    def delete(self, request, recipe_id):
+        if self.delete_instance(Favorite, request.user, recipe_id):
+            return Response({'message': 'Рецепт успешно удален из избранного'},
                             status=status.HTTP_204_NO_CONTENT)
         return Response({'message': 'Рецепта не было в избранном'},
                         status=status.HTTP_400_BAD_REQUEST)
 
 
 class SubscribeAPIView(APIView):
-    """Вью просмотров для подписок."""
+    """Вью сет для подписок"""
 
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, user_id):
-        """Метод создания экземпляра подписки."""
+        """Метод для создания экземпляра подписки"""
         author = get_object_or_404(User, id=user_id)
         if self.request.user == author or Subscription.objects.filter(
                 user=request.user, author=user_id).exists():
@@ -169,10 +137,12 @@ class SubscribeAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST)
         subscription = Subscription.objects.create(
             author=author, user=self.request.user)
-        serializer = SubscriptionsSerializer(
+        serializer_data = SubscriptionsSerializer(
+            subscription, context={'request': request})
+        serializer_data = SubscriptionsSerializer(
             subscription, context={'request': request})
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer_data.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, user_id):
         subscription = Subscription.objects.filter(
@@ -186,7 +156,7 @@ class SubscribeAPIView(APIView):
 
 
 class SubscriptionsListAPIView(ListAPIView):
-    """Вью класс для просмотра списка подписок."""
+    """Вью класс для просмотра списка подписок"""
 
     serializer_class = SubscriptionsSerializer
     permission_classes = (IsAuthenticated,)

@@ -110,16 +110,16 @@ class RecipeAddSerializer(serializers.ModelSerializer):
         """Метод обновления рецепта."""
         tags = validated_data.pop('tags', instance.tags)
         ingredients = validated_data.pop('ingredients', instance.ingredients)
-        instance.name = super().update(validated_data)
-        instance.image = super().update(validated_data)
-        instance.text = super().update(validated_data)
+        instance.name = 'name'
+        instance.image = 'image'
+        instance.text = 'text'
         instance.cooking_time = validated_data.get(
             'cooking_time', instance.cooking_time)
         TagRecipe.objects.filter(recipe=instance).delete()
         IngredientRecipe.objects.filter(recipe=instance).delete()
         self.create_tags_ingredients_objects(tags, ingredients, instance)
         instance.save()
-        return instance
+        return super().instance(validated_data)
 
     def to_representation(self, instance):
         """Метод переопределяющий вывод информации"""
