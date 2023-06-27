@@ -1,5 +1,4 @@
 from django.http import HttpResponse
-from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
@@ -18,9 +17,9 @@ from .filters import IngredientFilter, RecipeFilter
 from .permissions import OwnerOrReadPermission
 from .serializers import (IngredientSerializer, RecipeAddSerializer,
                           RecipeSerializer, RecipeSmallSerializer,
-                          SubscriptionsSerializer, TagSerializer,
-                          FavoriteSerializer)
+                          SubscriptionsSerializer, TagSerializer)
 from api.utils import RepeatableMixin
+
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вью сет для рецептов."""
