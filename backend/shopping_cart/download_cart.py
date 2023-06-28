@@ -8,12 +8,12 @@ def download_ingredients(user):
     ingredients = defaultdict(int)
 
     ingredient_recipes = IngredientRecipe.objects.filter(
-        recipe__recipe_cart__user=user
+        recipe__recipe_cart__user=user,
     ).values(
         'ingredient__name',
-        'ingredient__measurement_unit'
+        'ingredient__measurement_unit',
     ).annotate(
-        total_amount=Sum('amount')
+        total_amount=Sum('amount'),
     )
 
     ingredients_to_file = 'Список покупок:\n'

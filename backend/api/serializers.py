@@ -193,8 +193,7 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, obj):
         """Метод определения подписки на автора"""
         request = self.context.get('request')
-        return (not request.user
-                    == obj.author
+        return (not request.user == obj.author
                 and Subscription.objects.filter(user=request.user,
                                                 author=obj.author).exists())
 
