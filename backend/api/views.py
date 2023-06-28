@@ -9,20 +9,20 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from api.pagination import CustomPagination
-from recipes.models import Favorite, Ingredient, Recipe, Subscription, Tag
+from recipes.models import Ingredient, Recipe, Subscription, Tag
 from shopping_cart.download_cart import download_ingredients
 from shopping_cart.models import ShoppingCart
 from users.models import User
 from .filters import IngredientFilter, RecipeFilter
+from .mixins import FavoriteMixin, ShoppingCartMixin
 from .permissions import OwnerOrReadPermission
 from .serializers import (IngredientSerializer, RecipeAddSerializer,
-                          RecipeSerializer, RecipeSmallSerializer,
-                          SubscriptionsSerializer, TagSerializer)
-from api.utils import RepeatableMixin
+                          RecipeSerializer, SubscriptionsSerializer,
+                          TagSerializer)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    """Вью сет для рецептов."""
+    """Вью сет для рецептов"""
 
     queryset = Recipe.objects.all()
     permission_classes = (OwnerOrReadPermission,)
@@ -31,20 +31,20 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):
-        """Определение сериалайзера для пользователей."""
+        """Определение сериалайзера для пользователей"""
         if self.action in ('create', 'partial_update'):
             return RecipeAddSerializer
         return RecipeSerializer
 
     def perform_create(self, serializer):
-        """Переопределение метода создания поста."""
+        """Переопределение метода создания поста"""
         serializer.save(author=self.request.user)
 
     @action(detail=False, methods=('get',),
             url_name='download_shopping_cart',
             permission_classes=(IsAuthenticated,))
     def download_shopping_cart(self, request, *args, **kwargs):
-        """Метод для скачивания списка покупок."""
+        """Метод для скачивания списка покупок"""
         ingredients = download_ingredients(request.user)
         return HttpResponse(
             ingredients,
@@ -54,7 +54,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
-    """Вью сет для тегов."""
+    """Вью сет для тегов"""
 
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
@@ -62,7 +62,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
-    """Вью сет для ингредиентов."""
+    """Вью сет для ингредиентов"""
 
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
@@ -71,53 +71,30 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_class = IngredientFilter
 
 
-class ShoppingCartAPIView(RepeatableMixin, APIView):
-    """Вью сет для списка покупок"""
+class ShoppingCartAPIView(APIView, ShoppingCartMixin):
+    permission_classes = (IsAuthenticated,)
 
+    def post(self, request, pk):
+        recipe_id = request.data.get('recipe')
+        quantity = request.data.get('quantity')
+        data, status_code = self.add_to_cart(recipe_id, quantity)
+        return Response(data, status=status_code)
+
+    def delete(self, request, recipe_id):
+        data, status_code = self.remove_from_cart(recipe_id)
+        return Response(data, status=status_code)
+
+
+class FavoriteAPIView(APIView, FavoriteMixin):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, recipe_id):
-        """Метод для добавления в избранное"""
-        recipe = get_object_or_404(Recipe, id=recipe_id)
-        if self.check_if_already_added(ShoppingCart, request.user, recipe):
-            return Response(
-                {'error': 'Вы уже добавили этот рецепт в корзину'},
-                status=status.HTTP_400_BAD_REQUEST)
-        serializer_data = self.create_and_serialize(
-            RecipeSmallSerializer, ShoppingCart, request.user, recipe)
-        return Response(serializer_data, status=status.HTTP_201_CREATED)
+        data, status_code = self.add_to_favorite(recipe_id)
+        return Response(data, status=status_code)
 
     def delete(self, request, recipe_id):
-        """Метод удаления рецепта из списка покупок"""
-        if self.delete_instance(ShoppingCart, request.user, recipe_id):
-            return Response({'message': 'Рецепт успешно удален из корзины'},
-                            status=status.HTTP_204_NO_CONTENT)
-        return Response({'message': 'Рецепта не было в корзине'},
-                        status=status.HTTP_400_BAD_REQUEST)
-
-
-class FavoriteAPIView(RepeatableMixin, APIView):
-    """Вью сет для избранного"""
-
-    permission_classes = (IsAuthenticated,)
-
-    def post(self, request, recipe_id):
-        """Метод для добавления в избранное"""
-        recipe = get_object_or_404(Recipe, id=recipe_id)
-        if self.check_if_already_added(Favorite, request.user, recipe):
-            return Response(
-                {'error': 'Вы уже добавили этот рецепт в избранное'},
-                status=status.HTTP_400_BAD_REQUEST)
-        serializer_data = self.create_and_serialize(
-            RecipeSmallSerializer, Favorite, request.user, recipe)
-        return Response(serializer_data, status=status.HTTP_201_CREATED)
-
-    def delete(self, request, recipe_id):
-        if self.delete_instance(Favorite, request.user, recipe_id):
-            return Response({'message': 'Рецепт успешно удален из избранного'},
-                            status=status.HTTP_204_NO_CONTENT)
-        return Response({'message': 'Рецепта не было в избранном'},
-                        status=status.HTTP_400_BAD_REQUEST)
+        data, status_code = self.remove_from_favorite(recipe_id)
+        return Response(data, status=status_code)
 
 
 class SubscribeAPIView(APIView):
@@ -136,12 +113,10 @@ class SubscribeAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST)
         subscription = Subscription.objects.create(
             author=author, user=self.request.user)
-        serializer_data = SubscriptionsSerializer(
-            subscription, context={'request': request})
-        serializer_data = SubscriptionsSerializer(
+        serializer = SubscriptionsSerializer(
             subscription, context={'request': request})
 
-        return Response(serializer_data.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, user_id):
         subscription = Subscription.objects.filter(
