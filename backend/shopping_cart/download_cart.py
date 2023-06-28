@@ -33,4 +33,3 @@ def download_ingredients(user):
     ingredients_to_file += '\n\n Foodgram ©'
 
     return ingredients_to_file
-
