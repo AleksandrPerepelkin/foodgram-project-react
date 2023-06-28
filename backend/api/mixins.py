@@ -29,7 +29,7 @@ class ShoppingCartMixin:
             recipe_in_cart.delete()
             return {
                 'message': 'Рецепт успешно удален из корзины',
-                }, status.HTTP_204_NO_CONTENT
+                   }, status.HTTP_204_NO_CONTENT
         return {'message': 'Рецепта не было в корзине'}
     status.HTTP_400_BAD_REQUEST
 
@@ -43,7 +43,7 @@ class FavoriteMixin:
                                    recipe=recipe).exists():
             return {
                 'error': 'Вы уже добавили этот рецепт в избранное',
-                }, status.HTTP_400_BAD_REQUEST
+                   }, status.HTTP_400_BAD_REQUEST
         favorite_recipe = Favorite.objects.create(user=self.request.user,
                                                   recipe=recipe)
         serializer = RecipeSmallSerializer(favorite_recipe.recipe)
@@ -56,7 +56,7 @@ class FavoriteMixin:
             favorite_recipe.delete()
             return {
                 'message': 'Рецепт успешно удален из избранного',
-                }, status.HTTP_204_NO_CONTENT
+                   }, status.HTTP_204_NO_CONTENT
         return {
             'message': 'Рецепта не было в избранном',
-            }, status.HTTP_400_BAD_REQUEST
+               }, status.HTTP_400_BAD_REQUEST
