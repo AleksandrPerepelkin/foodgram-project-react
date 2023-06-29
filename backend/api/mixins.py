@@ -70,6 +70,7 @@ class ItemManagementMixin:
                                 recipe_id,
                                 'Рецепт успешно удален из избранного')
 
+
 class ShoppingCartMixin:
     def add_to_cart(self, recipe_id, quantity):
         cart = get_object_or_404(Recipe, pk=self.kwargs['pk'])
