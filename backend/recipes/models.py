@@ -3,7 +3,6 @@ from django.db import models
 
 from users.models import User
 
-
 MIN_VALUE = 1
 
 MESSAGE_ERR_TIME = 'Время приготовления должно быть больше ноля.'

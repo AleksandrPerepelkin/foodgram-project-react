@@ -1,11 +1,11 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
+from api.fields import Base64ImageField
 from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
                             Subscription, Tag, TagRecipe)
 from shopping_cart.models import ShoppingCart
 from users.models import User
-from api.fields import Base64ImageField
 
 
 class UserReadSerializer(serializers.ModelSerializer):
@@ -111,15 +111,9 @@ class RecipeAddSerializer(serializers.ModelSerializer):
         tags = validated_data.pop('tags', instance.tags)
         ingredients = validated_data.pop('ingredients', instance.ingredients)
         instance = super().update(instance, validated_data)
-        # instance.name = validated_data.get('name', instance.name)
-        # instance.image = validated_data.get('image', instance.image)
-        # instance.text = validated_data.get('text', instance.text)
-        # instance.cooking_time = validated_data.get(
-        #    'cooking_time', instance.cooking_time)
         TagRecipe.objects.filter(recipe=instance).delete()
         IngredientRecipe.objects.filter(recipe=instance).delete()
         self.create_tags_ingredients_objects(tags, ingredients, instance)
-        instance.save()
         return instance
 
     def to_representation(self, instance):

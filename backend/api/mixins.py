@@ -1,21 +1,84 @@
-# Миксин для операций с корзиной
-from recipes.models import Recipe, Favorite
+"""Миксин для операций с корзиной."""
 from django.shortcuts import get_object_or_404
-from rest_framework.response import Response
 from rest_framework import status
-from .serializers import RecipeSmallSerializer
+from rest_framework.response import Response
+
+from recipes.models import Recipe, Favorite
 from shopping_cart.models import ShoppingCart
 
+from .serializers import RecipeSmallSerializer
+
+
+class ItemManagementMixin:
+    def add_to_list(self,
+                    model_class,
+                    model_name,
+                    item_id,
+                    error_message,
+                    success_status):
+        try:
+            item = model_class.objects.get(pk=item_id)
+        except model_class.DoesNotExist:
+            return {'error': error_message}, status.HTTP_404_NOT_FOUND
+
+        if model_class.objects.filter(user=self.request.user,
+                                      **{model_name: item}).exists():
+            return {'error': 'Вы уже добавили этот рецепт в избранное'}
+        status.HTTP_400_BAD_REQUEST
+
+        list_item = model_class.objects.create(user=self.request.user,
+                                               **{model_name: item})
+        serializer = RecipeSmallSerializer(list_item.recipe)
+        return serializer.data, success_status
+
+    def add_to_cart(self, recipe_id):
+        return self.add_to_list(ShoppingCart,
+                                'recipe',
+                                recipe_id,
+                                'Рецепт не найден',
+                                status.HTTP_201_CREATED)
+
+    def add_to_favorite(self, recipe_id):
+        return self.add_to_list(Favorite,
+                                'recipe',
+                                recipe_id,
+                                'Рецепт не найден',
+                                status.HTTP_201_CREATED)
+
+    def remove_item(self,
+                    model_class,
+                    model_name,
+                    item_id,
+                    success_message):
+        item = model_class.objects.filter(user=self.request.user,
+                                          **{model_name: item_id})
+        if item.exists():
+            item.delete()
+            return {'message': success_message}, status.HTTP_204_NO_CONTENT
+        return {'message': f'{model_name.capitalize()} не было в избранном'}
+    status.HTTP_400_BAD_REQUEST
+
+    def remove_from_cart(self, recipe_id):
+        return self.remove_item(ShoppingCart,
+                                'recipe',
+                                recipe_id,
+                                'Рецепт успешно удален из корзины')
+
+    def remove_from_favorite(self, recipe_id):
+        return self.remove_item(Favorite,
+                                'recipe',
+                                recipe_id,
+                                'Рецепт успешно удален из избранного')
 
 class ShoppingCartMixin:
-
     def add_to_cart(self, recipe_id, quantity):
         cart = get_object_or_404(Recipe, pk=self.kwargs['pk'])
         try:
             recipe = Recipe.objects.get(pk=recipe_id)
         except Recipe.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        recipe_in_cart = ShoppingCart(cart=cart, recipe=recipe,
+        recipe_in_cart = ShoppingCart(cart=cart,
+                                      recipe=recipe,
                                       quantity=quantity,
                                       user=self.request.user)
         recipe_in_cart.save()
@@ -33,8 +96,8 @@ class ShoppingCartMixin:
     status.HTTP_400_BAD_REQUEST
 
 
-# Миксин для операций с избранным
 class FavoriteMixin:
+    """Миксин для операций с избранным."""
 
     def add_to_favorite(self, recipe_id):
         recipe = get_object_or_404(Recipe, id=recipe_id)
