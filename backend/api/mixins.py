@@ -1,9 +1,8 @@
 """Миксин для операций с корзиной."""
 from django.shortcuts import get_object_or_404
 from rest_framework import status
-from rest_framework.response import Response
 
-from recipes.models import Recipe, Favorite
+from recipes.models import Favorite
 from shopping_cart.models import ShoppingCart
 from .serializers import RecipeSmallSerializer
 
