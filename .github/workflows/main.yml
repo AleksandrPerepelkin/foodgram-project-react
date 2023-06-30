@@ -55,7 +55,6 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
           script: |
-            cd foodgram_project_react
             sudo docker-compose down
             sudo docker image rm ${{ secrets.DOCKER_USERNAME }}/foodgram_backend
             sudo docker image rm ${{ secrets.DOCKER_USERNAME }}/foodgram_frontend
