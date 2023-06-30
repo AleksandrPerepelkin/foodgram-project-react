@@ -1,28 +1,42 @@
-version: '3.3'
+version: '3.8'
+
+volumes:
+  db_value:
+  static_value:
+  media_value:
+
 services:
 
   db:
-    image: postgres:13.10
+    image: postgres:13.0-alpine
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - db_value:/var/lib/postgresql/data/
     env_file:
-      - ./.env
-  web:
-    image: wuldpwnz/foodgram_backend
+      - .env
+    restart: always
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
     restart: always
     volumes:
-      - static_value:/app/static/
-      - media_value:/app/media/
+      - static_value:/backend/static/
+      - media_value:/backend/media/
     depends_on:
       - db
     env_file:
-      - ./.env
+      - .env
+
   frontend:
-    image: wuldpwnz/foodgram_frontend
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
     volumes:
       - ../frontend/:/app/result_build/
     depends_on:
-      - web
+      - db
+
   nginx:
     image: nginx:1.19.3
     ports:
@@ -34,9 +48,5 @@ services:
       - static_value:/var/html/static/
       - media_value:/var/html/media/
     depends_on:
+      - backend
       - frontend
-
-volumes:
-  postgres_data:
-  static_value:
-  media_value:
