@@ -9,6 +9,7 @@ from .serializers import RecipeSmallSerializer
 
 
 class ItemManagementMixin:
+
     def add_to_list(self,
                     model_class,
                     model_name,
