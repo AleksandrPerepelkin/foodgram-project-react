@@ -31,7 +31,7 @@ class ItemManagementMixin:
         serializer = RecipeSmallSerializer(list_item.recipe)
         return serializer.data, success_status
 
-    def add_to_list(self, recipe_id):
+    def add_to_cart(self, recipe_id):
         return self.add_to_list(ShoppingCart,
                                 'recipe',
                                 recipe_id,
