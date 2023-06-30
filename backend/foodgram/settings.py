@@ -10,7 +10,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'default-key')
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['wuldpwnz.ddns.net','localhost', '158.160.16.142']
+ALLOWED_HOSTS = ['wuldpwnz.ddns.net', 'localhost', '158.160.16.142']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
