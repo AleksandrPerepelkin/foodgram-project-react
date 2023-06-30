@@ -35,7 +35,6 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
           script: |
-            cd foodfram_project_react
             sudo docker pull wuldpwnz/foodgram_backend
             sudo docker-compose stop
             sudo docker-compose rm -f backend
