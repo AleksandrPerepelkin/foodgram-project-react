@@ -15,7 +15,7 @@ services:
       - .env
 
   backend:
-    image: wuldpwnz/taski_backend
+    image: wuldpwnz/foodgram_backend
     volumes:
       - static_value:/backend/static/
       - media_value:/backend/media/
@@ -23,7 +23,7 @@ services:
       - .env
 
   frontend:
-    image: wuldpwnz/taski_frontend
+    image: wuldpwnz/foodgram_frontend
     command: cp -r /app/build/. /frontend_static/
     volumes:
       - ./frontend/:/app/result_build/
