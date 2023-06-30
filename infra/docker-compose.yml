@@ -13,9 +13,8 @@ services:
       - db_value:/var/lib/postgresql/data/
     env_file: .env
   backend:
-      build:
-        image: wuldpwnz/foodgram_backend:latest
-        dockerfile: Dockerfile
+      image: wuldpwnz/foodgram_backend:latest
+      dockerfile: Dockerfile
       restart: always
       volumes:
         - static_value:/app/static/
