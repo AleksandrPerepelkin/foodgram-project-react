@@ -22,7 +22,7 @@ services:
         - ./.env
 
   frontend:
-    image: andyplo/foodgram_frontend:v.21.12.22
+    image: wuldpwnz/foodgram_frontend:v.21.12.22
     volumes:
       - ../frontend/:/app/result_build/
     depends_on:
