@@ -11,6 +11,7 @@ from .serializers import RecipeSmallSerializer
 class ItemManagementMixin:
 
     def add_to_list(self,
+                    request,
                     model_class,
                     model_name,
                     item_id,
@@ -21,25 +22,27 @@ class ItemManagementMixin:
         except model_class.DoesNotExist:
             return {'error': error_message}, status.HTTP_404_NOT_FOUND
 
-        if model_class.objects.filter(user=self.request.user,
+        if model_class.objects.filter(user=request.user,
                                       **{model_name: item}).exists():
             return {'error': 'Вы уже добавили этот рецепт в избранное'}
         status.HTTP_400_BAD_REQUEST
 
-        list_item = model_class.objects.create(user=self.request.user,
+        list_item = model_class.objects.create(user=request.user,
                                                **{model_name: item})
         serializer = RecipeSmallSerializer(list_item.recipe)
         return serializer.data, success_status
 
-    def add_to_cart(self, recipe_id):
-        return self.add_to_list(ShoppingCart,
+    def add_to_cart(self, request, recipe_id):
+        return self.add_to_list(request,
+                                ShoppingCart,
                                 'recipe',
                                 recipe_id,
                                 'Рецепт не найден',
                                 status.HTTP_201_CREATED)
 
-    def add_to_favorite(self, recipe_id):
-        return self.add_to_list(Favorite,
+    def add_to_favorite(self, request, recipe_id):
+        return self.add_to_list(request,
+                                Favorite,
                                 'recipe',
                                 recipe_id,
                                 'Рецепт не найден',

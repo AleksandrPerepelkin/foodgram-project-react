@@ -7,7 +7,6 @@ from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.request import Request
 
 from api.pagination import CustomPagination
 from recipes.models import Ingredient, Recipe, Subscription, Tag
@@ -74,12 +73,12 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 class ShoppingCartAPIView(APIView, ItemManagementMixin):
     permission_classes = (IsAuthenticated,)
 
-    def post(self, request: Request, recipe_id):
-        data, status_code = self.add_to_cart(recipe_id)
+    def post(self, request, recipe_id):
+        data, status_code = self.add_to_cart(request, recipe_id)
         return Response(data, status=status_code)
 
-    def delete(self, request: Request, recipe_id):
-        data, status_code = self.remove_from_cart(recipe_id)
+    def delete(self, request, recipe_id):
+        data, status_code = self.remove_from_cart(request, recipe_id)
         return Response(data, status=status_code)
 
 
