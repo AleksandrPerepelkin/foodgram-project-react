@@ -5,7 +5,6 @@ from rest_framework.response import Response
 
 from recipes.models import Recipe, Favorite
 from shopping_cart.models import ShoppingCart
-
 from .serializers import RecipeSmallSerializer
 
 
@@ -31,7 +30,7 @@ class ItemManagementMixin:
         serializer = RecipeSmallSerializer(list_item.recipe)
         return serializer.data, success_status
 
-    def add_to_cart(self, recipe_id):
+    def add_to_list(self, recipe_id):
         return self.add_to_list(ShoppingCart,
                                 'recipe',
                                 recipe_id,
@@ -70,8 +69,6 @@ class ItemManagementMixin:
                                 recipe_id,
                                 'Рецепт успешно удален из избранного')
 
-
-class ShoppingCartMixin:
     def add_to_cart(self, recipe_id, quantity):
         cart = get_object_or_404(Recipe, pk=self.kwargs['pk'])
         try:
@@ -95,10 +92,6 @@ class ShoppingCartMixin:
         status.HTTP_204_NO_CONTENT
         return {'message': 'Рецепта не было в корзине'}
     status.HTTP_400_BAD_REQUEST
-
-
-class FavoriteMixin:
-    """Миксин для операций с избранным."""
 
     def add_to_favorite(self, recipe_id):
         recipe = get_object_or_404(Recipe, id=recipe_id)

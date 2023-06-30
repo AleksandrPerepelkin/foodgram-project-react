@@ -12,7 +12,6 @@ from api.pagination import CustomPagination
 from recipes.models import Ingredient, Recipe, Subscription, Tag
 from shopping_cart.download_cart import download_ingredients
 from users.models import User
-
 from .filters import IngredientFilter, RecipeFilter
 from .mixins import ItemManagementMixin
 from .permissions import OwnerOrReadPermission
@@ -74,10 +73,8 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 class ShoppingCartAPIView(APIView, ItemManagementMixin):
     permission_classes = (IsAuthenticated,)
 
-    def post(self, request):
-        recipe_id = request.data.get('recipe')
-        quantity = request.data.get('quantity')
-        data, status_code = self.add_to_cart(recipe_id, quantity)
+    def post(self, recipe_id):
+        data, status_code = self.add_to_cart(recipe_id)
         return Response(data, status=status_code)
 
     def delete(self, recipe_id):
