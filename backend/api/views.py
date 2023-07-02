@@ -50,6 +50,7 @@ class FavoriteAPIView(APIView):
         return Response({'message': 'Рецепта не было в избранном'},
                         status=status.HTTP_400_BAD_REQUEST)
 
+
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вью сет для рецептов"""
 
