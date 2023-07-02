@@ -10,7 +10,10 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'default-key')
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['wuldpwnz.ddns.net', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['158.160.16.142',
+                 'wuldpwnz.ddns.net',
+                 'localhost',
+                 '127.0.0.1']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -58,15 +61,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'foodgram.wsgi.application'
 
+DB_ENGINE = os.getenv('DB_ENGINE', default='django.db.backends.sqlite3')
+DB_NAME = os.getenv('DB_NAME', default='db.sqlite3')
+if DB_ENGINE == 'django.db.backends.sqlite3':
+    DB_NAME = os.path.join(BASE_DIR, DB_NAME)
+
 DATABASES = {
     'default': {
-        'ENGINE': os.getenv('DB_ENGINE',
-                            default='django.db.backends.postgresql'),
-        'NAME': os.getenv('DB_NAME', default='default'),
-        'USER': os.getenv('POSTGRES_USER', default='default'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD', default='default'),
-        'HOST': os.getenv('DB_HOST', default='default'),
-        'PORT': os.getenv('DB_PORT', default='default')
+        'ENGINE': DB_ENGINE,
+        'NAME': DB_NAME,
+        'USER': os.getenv('POSTGRES_USER', default='postgres'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', default='postgres'),
+        'HOST': os.getenv('DB_HOST', default='db'),
+        'PORT': os.getenv('DB_PORT', default='5432')
     }
 }
 
@@ -138,7 +145,8 @@ USE_L10N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'collected_static')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
