@@ -8,7 +8,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'default-key')
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['158.160.16.142',
                  'wuldpwnz.ddns.net',
@@ -61,19 +61,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'foodgram.wsgi.application'
 
-DB_ENGINE = os.getenv('DB_ENGINE', default='django.db.backends.sqlite3')
-DB_NAME = os.getenv('DB_NAME', default='db.sqlite3')
-if DB_ENGINE == 'django.db.backends.sqlite3':
-    DB_NAME = os.path.join(BASE_DIR, DB_NAME)
-
 DATABASES = {
     'default': {
-        'ENGINE': DB_ENGINE,
-        'NAME': DB_NAME,
-        'USER': os.getenv('POSTGRES_USER', default='postgres'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD', default='postgres'),
-        'HOST': os.getenv('DB_HOST', default='db'),
-        'PORT': os.getenv('DB_PORT', default='5432')
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_ENGINE', default='default'),
+        'USER': os.getenv('POSTGRES_USER', default='default'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', default='default'),
+        'HOST': os.getenv('DB_HOST', default='default'),
+        'PORT': os.getenv('DB_PORT', default='default')
     }
 }
 
@@ -150,3 +145,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'collected_static')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

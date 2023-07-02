@@ -156,6 +156,27 @@ class RecipeSerializer(serializers.ModelSerializer):
                                                 recipe=obj).exists())
 
 
+class ShowFavoriteSerializer(serializers.ModelSerializer):
+    """ Сериализатор для отображения избранного. """
+
+    class Meta:
+        model = Recipe
+        fields = ['id', 'name', 'image', 'cooking_time']
+
+
+class ShoppingCartSerializer(serializers.ModelSerializer):
+    """ Сериализатор для списка покупок. """
+
+    class Meta:
+        model = ShoppingCart
+        fields = ['user', 'recipe']
+
+    def to_representation(self, instance):
+        return ShowFavoriteSerializer(instance.recipe, context={
+            'request': self.context.get('request')
+        }).data
+
+
 class RecipeSmallSerializer(serializers.ModelSerializer):
     """Сериалайзер для короткого вывода рецептов"""
 

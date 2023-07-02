@@ -47,11 +47,12 @@ class ItemManagementMixin:
                                 status.HTTP_201_CREATED)
 
     def remove_item(self,
+                    request,
                     model_class,
                     model_name,
                     item_id,
                     success_message):
-        item = model_class.objects.filter(user=self.request.user,
+        item = model_class.objects.filter(user=request.user,
                                           **{model_name: item_id})
         if item.exists():
             item.delete()

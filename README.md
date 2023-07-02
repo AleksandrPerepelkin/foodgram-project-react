@@ -22,19 +22,16 @@
 - SECRET_KEY='ключ для Django settings'
 
 ### Запуск приложения используя контейнеры
-1. Перейти в папку infra: ```cd infra```
-2. Собрать контейнеры: ```docker-compose up -d --build```
+1. Перейти в папку foodgram_project_react: ```cd foodgram_project_react```
+2. Собрать контейнеры: ```sudo docker compose -f docker-compose.yml pull```
+3. Запустить контейнеры: ```sudo docker compose -f docker-compose.yml up -d```
 3. Применить миграции: ```docker-compose exec web python manage.py migrate```
 4. Cобрать статику: ```docker-compose exec web python manage.py collectstatic --no-input```
 
-### Загрузить базу данных на сайт
-```sh
-docker-compose exec web python manage.py loaddata data/fixtures.json
-```
-### Можно загрузить только ингредиенты и теги
-```sh
-docker-compose exec web python manage.py procces_csv
-```
+
+Сайт ```wuldpwnz.ddns.net```
+login: wuld1@mail.ru
+pass: 1234
 ### Остановка работы контейнеров
 ```sh
 docker-compose stop
