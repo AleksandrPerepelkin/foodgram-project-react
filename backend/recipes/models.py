@@ -44,15 +44,23 @@ class Recipe(models.Model):
     """Модель рецептов"""
 
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='recipes',
-        verbose_name='Автор рецепта')
-    name = models.CharField(verbose_name='Название рецепта', max_length=200)
+        User, on_delete=models.CASCADE,
+        related_name='recipes',
+        verbose_name='Автор рецепта'
+    )
+    name = models.CharField(
+        verbose_name='Название рецепта',
+        max_length=200
+    )
     image = models.ImageField(
-        verbose_name='Изображение', upload_to='recipes/',
-        help_text='Загрузите изображение')
+        verbose_name='Изображение',
+        upload_to='recipes/images/',
+        help_text='Загрузите изображение'
+    )
     text = models.TextField(verbose_name='Описание рецепта')
     ingredients = models.ManyToManyField(
-        Ingredient, through='IngredientRecipe')
+        Ingredient,
+        through='IngredientRecipe')
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления',
         validators=[MinValueValidator(MIN_VALUE, message=MESSAGE_ERR_TIME)])
