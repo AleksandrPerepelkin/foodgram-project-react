@@ -56,3 +56,4 @@ uritemplate==4.1.1
 urllib3==1.26.9
 webcolors==1.13
 zipp==3.8.0
+drf-extra-fields==3.1.0

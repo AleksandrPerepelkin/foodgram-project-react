@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-
-from api.fields import Base64ImageField
+from drf_extra_fields.fields import Base64ImageField
+ 
 from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
                             Subscription, Tag, TagRecipe)
 from shopping_cart.models import ShoppingCart

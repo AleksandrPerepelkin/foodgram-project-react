@@ -17,38 +17,7 @@ from .filters import IngredientFilter, RecipeFilter
 from .permissions import OwnerOrReadPermission
 from .serializers import (IngredientSerializer, RecipeAddSerializer,
                           RecipeSerializer, RecipeSmallSerializer,
-                          SubscriptionsSerializer, TagSerializer)
-
-
-class FavoriteAPIView(APIView):
-    """Вью сет для избранного"""
-
-    permission_classes = (IsAuthenticated,)
-
-    def post(self, request, recipe_id):
-        """Метод для добавления в избранное"""
-        recipe = get_object_or_404(Recipe, id=recipe_id)
-        if Favorite.objects.filter(
-                user=request.user, recipe=recipe).exists():
-            return Response(
-                {'error': 'Вы уже добавили этот рецепт в избранное'},
-                status=status.HTTP_400_BAD_REQUEST)
-        favorite_recipe = Favorite.objects.create(
-            user=request.user, recipe=recipe)
-        serializer = RecipeSmallSerializer(favorite_recipe.recipe)
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def delete(self, request, recipe_id):
-        recipe = get_object_or_404(Recipe, id=recipe_id)
-        favorite_recipe = Favorite.objects.filter(
-            user=request.user, recipe=recipe)
-        if favorite_recipe.exists():
-            favorite_recipe.delete()
-            return Response({'message': 'Рецепт успешно удален из избранного'},
-                            status=status.HTTP_204_NO_CONTENT)
-        return Response({'message': 'Рецепта не было в избранном'},
-                        status=status.HTTP_400_BAD_REQUEST)
+                          SubscriptionsSerializer, TagSerializer,)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -71,8 +40,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
     @action(detail=False, methods=('get',),
-            url_name='download_shopping_cart',
-            permission_classes=(IsAuthenticated,))
+            url_name='download_shopping_cart', permission_classes=(IsAuthenticated,))
     def download_shopping_cart(self, request, *args, **kwargs):
         """Метод для скачивания списка покупок"""
         ingredients = download_ingredients(request.user)
@@ -128,6 +96,37 @@ class ShoppingCartAPIView(APIView):
             return Response({'message': 'Рецепт успешно удален из корзины'},
                             status=status.HTTP_204_NO_CONTENT)
         return Response({'message': 'Рецепта не было в корзине'},
+                        status=status.HTTP_400_BAD_REQUEST)
+
+
+class FavoriteAPIView(APIView):
+    """Вью сет для избранного"""
+
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, recipe_id):
+        """Метод для добавления в избранное"""
+        recipe = get_object_or_404(Recipe, id=recipe_id)
+        if Favorite.objects.filter(
+                user=request.user, recipe=recipe).exists():
+            return Response(
+                {'error': 'Вы уже добавили этот рецепт в избранное'},
+                status=status.HTTP_400_BAD_REQUEST)
+        favorite_recipe = Favorite.objects.create(
+            user=request.user, recipe=recipe)
+        serializer = RecipeSmallSerializer(favorite_recipe.recipe)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, recipe_id):
+        recipe = get_object_or_404(Recipe, id=recipe_id)
+        favorite_recipe = Favorite.objects.filter(
+            user=request.user, recipe=recipe)
+        if favorite_recipe.exists():
+            favorite_recipe.delete()
+            return Response({'message': 'Рецепт успешно удален из избранного'},
+                            status=status.HTTP_204_NO_CONTENT)
+        return Response({'message': 'Рецепта не было в избранном'},
                         status=status.HTTP_400_BAD_REQUEST)
 
 

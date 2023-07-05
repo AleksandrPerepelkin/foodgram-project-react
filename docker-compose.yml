@@ -1,10 +1,5 @@
 version: '3.3'
 
-volumes:
-  pg_data:
-  static:
-  media:
-
 services:
   db:
     image: postgres:13.0-alpine
@@ -17,8 +12,9 @@ services:
   backend:
     image: wuldpwnz/foodgram_backend
     volumes:
-      - static:/backend_static/
-      - media:/app/media/recipes/
+      - static:/static/
+      - media:/app/media/recipes/images/
+
     depends_on:
       - db
     env_file: .env
@@ -36,14 +32,19 @@ services:
   nginx:
     image: wuldpwnz/foodgram_gateway
     ports:
-      - 8000:80
+      - "8000:80"
     env_file: .env
     volumes:
       - static:/var/html/static/
-      - media:/var/html/media/recipes/
+      - media:/var/html/media/recipes/images/
       - static:/usr/share/nginx/html/
       #- /docs/:/usr/share/nginx/html/api/docs/
     depends_on:
       - backend
       - frontend
     restart: always
+
+volumes:
+  pg_data:
+  static:
+  media:
