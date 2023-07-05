@@ -13,7 +13,7 @@ services:
     image: wuldpwnz/foodgram_backend
     volumes:
       - static:/static/
-      - media:/app/media/recipes/images/
+      - media:/app/media/
 
     depends_on:
       - db
@@ -36,7 +36,7 @@ services:
     env_file: .env
     volumes:
       - static:/var/html/static/
-      - media:/var/html/media/recipes/images/
+      - media:/media
       - static:/usr/share/nginx/html/
       #- /docs/:/usr/share/nginx/html/api/docs/
     depends_on:
