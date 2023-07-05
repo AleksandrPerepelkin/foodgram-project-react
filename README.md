@@ -30,8 +30,19 @@
 
 
 Сайт ```wuldpwnz.ddns.net```
-login: wuld1@mail.ru
-pass: 1234
+### Админ
+admin
+a@mail.ru
+1234
+### Пользователи для проверки
+Петька
+p@mail.ru
+Perepelkin1
+
+Михаил
+d@mail.ru
+Perepelkin1
+
 ### Остановка работы контейнеров
 ```sh
 docker-compose stop

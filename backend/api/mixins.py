@@ -22,7 +22,8 @@ class ItemManagementMixin:
 
         if model_class.objects.filter(user=request.user,
                                       **{model_name: item}).exists():
-            return {'error': 'Вы уже добавили этот рецепт в избранное'}, status.HTTP_400_BAD_REQUEST
+            return {'error': 'Вы уже добавили этот рецепт в избранное'}
+        status.HTTP_400_BAD_REQUEST
 
         list_item = model_class.objects.create(user=request.user,
                                                **{model_name: item})
@@ -56,7 +57,8 @@ class ItemManagementMixin:
         if item.exists():
             item.delete()
             return {'message': success_message}, status.HTTP_204_NO_CONTENT
-        return {'message': f'{model_name.capitalize()} не было в избранном'}, status.HTTP_400_BAD_REQUEST
+        return {'message': f'{model_name.capitalize()} не было в избранном'}
+    status.HTTP_400_BAD_REQUEST
 
     def remove_from_cart(self, request, recipe_id):
         return self.remove_item(request,
